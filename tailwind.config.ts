@@ -5,7 +5,7 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        elms: ["var(--font-elms)"],
+        
       },
     },
   },

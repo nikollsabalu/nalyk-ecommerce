@@ -34,7 +34,7 @@ export default function CollectionGrid({ collections }) {
                             <div className="absolute inset-0 bg-black/30 group-hover:bg-black/40 transition-all duration-500" />
 
                             <div className="absolute inset-0 flex items-center justify-center">
-                                <h2 className="text-white text-sm font-semibold text-center px-2 font-italiana tracking-widest">
+                                <h2 className="text-white text-sm font-semibold text-center px-2 tracking-widest">
                                     {col.name}
                                 </h2>
                             </div>

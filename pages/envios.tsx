@@ -1,8 +1,8 @@
 export default function EnviosPage() {
   return (
-    <section className="px-6 py-14 lg:px-16 bg-white text-[#252525]">
+    <section className="px-6 py-14 lg:px-16 bg-white text-[#252525] font-commissioner">
       <div className="mx-auto max-w-[800px]">
-        <h1 className="font-italiana font-semibold text-xl uppercase r border-b border-[#252525] pb-4 mb-10">
+        <h1 className=" font-semibold text-xl uppercase r border-b border-[#252525] pb-4 mb-10">
           Envíos y devoluciones
         </h1>
 

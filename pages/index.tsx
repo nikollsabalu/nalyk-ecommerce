@@ -1,14 +1,7 @@
 import { supabase } from "@/lib/supabase"; // Importamos tu conexión cliente
 import Hero from "@/components/Hero";
 import ProductGrid from "@/components/ProductGrid";
-
-import { El_Messiri } from "next/font/google";
-
-const elmsSans = El_Messiri({
-  subsets: ["latin"],
-  weight: ["400", "500", "700"],
-  variable: "--font-elms",
-});
+ 
 
 // Definimos la interfaz de las props que el servidor le inyectará al Home
 interface HomeProps {
@@ -25,7 +18,7 @@ export default function Home({ products, error }: HomeProps) {
   }
 
   return (
-    <div className={` ${elmsSans.variable}  min-h-screen font-elms`}>
+    <div className={`min-h-screen`}>
       <Hero />
 
       {/* Le pasamos la data real traída y formateada desde el servidor */}

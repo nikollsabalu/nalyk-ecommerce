@@ -32,24 +32,24 @@ export const Footer = () => {
 
   return (
 
-    <footer className="border-t border-white/10 mt-auto py-14  text-sm text-black bg-[#F5F5F5]">
+    <footer className="border-t border-white/10 mt-auto py-14  text-sm text-black bg-[#F5F5F5] text-xs font-commissioner">
       <div className="grid md:grid-cols-3 max-sm:flex max-sm:flex-col max-sm:flex-col-reverse max-sm:items-center gap-10 items-center px-40 divide-x divide-white/10 max-sm:px-5 max-sm:divide-x-0">
 
 
         <div className="flex gap-2">
-          <div className="pr-8 flex flex-col gap-2 items-start ">
+          <div className="pr-8 flex flex-col gap-3 items-start">
             <h4 className="mb-4 uppercase font-semibold">SOBRE NALYK</h4>
-            <p className=" ">Quienes somos</p>
-            <p className=" ">Proceso de diseño</p>
+            <p className="hover:underline">Quienes somos</p>
+            {/* <p className=" ">Proceso de diseño</p> */}
           </div>
-          <div className="pr-8 flex flex-col gap-2 items-start ">
+          <div className="pr-8 flex flex-col gap-3 items-start ">
             <h4 className="mb-4 uppercase font-semibold">INFORMACIÓN</h4>
-            <Link href="/envios" className=" ">Envíos y Devoluciones</Link>
-            <p className=" ">Política de Privacidad</p>
+            <Link href="/envios" className="hover:underline">Envíos y Devoluciones</Link>
+            <p className="hover:underline">Política de Privacidad</p>
           </div>
-          <div className="pr-8 flex flex-col gap-2 items-start ">
+          <div className="pr-8 flex flex-col gap-3 items-start ">
             <h4 className="mb-4 uppercase font-semibold">INTERESES</h4>
-            <Link href="/cuidados-joyas" className=" ">Cuidados de las joyas</Link>
+            <Link href="/cuidados-joyas" className="hover:underline">Cuidados de las joyas</Link>
           </div>
         </div>
 
@@ -63,7 +63,7 @@ export const Footer = () => {
               className="h-5 w-auto"
             />
           </Link>
-          <div suppressHydrationWarning className="  pt-5 text-center text-xs " style={{ fontFamily: 'var(--font-italiana)' }}>
+          <div suppressHydrationWarning className="  pt-5 text-center text-xs ">
             {currentYear} &copy; Todos los derechos reservados
           </div>
         </div>

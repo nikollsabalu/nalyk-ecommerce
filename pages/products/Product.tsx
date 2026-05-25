@@ -23,7 +23,7 @@ export default function Product({ product }: ProductProps) {
 
     return (
 
-        <article className="group relative">
+        <article className="group relative font-commissioner">
             <Link href={`/products/${product?.slug}`}>
                 <div
                     className="relative aspect-[0.78] overflow-hidden bg-[#eceae6] cursor-pointer"
@@ -48,7 +48,7 @@ export default function Product({ product }: ProductProps) {
             </Link>
 
             <div className="pt-3">
-                <h3 className=" text-[15px] font-semibold uppercase">
+                <h3 className=" text-xs font-semibold uppercase">
                     {product?.name}
                 </h3>
 

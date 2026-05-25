@@ -19,7 +19,7 @@ export default function ProductGrid({
         {/* TITLE */}
         <div className="mb-16 flex justify-center">
           <h2
-            className=" uppercase tracking-[0.08em] text-lg"
+            className=" font-messiri uppercase tracking-[0.08em] text-lg"
           >
             {title}
           </h2>

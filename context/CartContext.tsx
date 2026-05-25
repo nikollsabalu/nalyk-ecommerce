@@ -1,6 +1,13 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
+
+import { supabase } from "@/lib/supabase";
 
 const CartContext = createContext(null);
 
@@ -10,72 +17,338 @@ export function CartProvider({ children }) {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
+  // =========================
+  // DRAWER
+  // =========================
 
-  // Funciones para controlar el Drawer
   const openCart = () => setIsCartOpen(true);
+
   const closeCart = () => setIsCartOpen(false);
 
-  useEffect(() => {
-    const saved = localStorage.getItem("cart");
-    if (saved) {
-      setCart(JSON.parse(saved));
+  // =========================
+  // OBTENER VARIANTE DESDE SUPABASE
+  // =========================
+
+  const fetchVariantData = async (
+    variantId: string
+  ) => {
+    try {
+
+      const { data, error } =
+        await supabase
+          .from("product_variants")
+          .select(`
+          id,
+          price,
+          stock
+        `)
+          .eq("id", variantId)
+          .single();
+
+      if (error) {
+        console.error(error);
+        return null;
+      }
+
+      return {
+        id: data.id,
+
+        // IMPORTANTE
+        // convertir numeric/string -> number
+
+        price: Number(data.price),
+
+        stock: Number(data.stock),
+      };
+
+    } catch (error) {
+
+      console.error(error);
+
+      return null;
     }
-    setHydrated(true);
+  };
+
+  // =========================
+  // HIDRATAR CARRITO
+  // =========================
+
+  useEffect(() => {
+    const loadCart = async () => {
+      try {
+        const saved =
+          localStorage.getItem("cart");
+
+        if (!saved) {
+          setHydrated(true);
+          return;
+        }
+
+        const parsedCart = JSON.parse(saved);
+
+        // sincronizar con BD
+        const updatedCart = await Promise.all(
+          parsedCart.map(async (item) => {
+            const variantDB =
+              await fetchVariantData(
+                item.variantId
+              );
+
+            // si variante no existe
+            if (!variantDB) return null;
+
+            return {
+              ...item,
+              stock: variantDB.stock,
+              price: variantDB.price,
+              quantity:
+                item.quantity >
+                  variantDB.stock
+                  ? variantDB.stock
+                  : item.quantity,
+            };
+          })
+        );
+
+        // eliminar null
+        const cleanCart =
+          updatedCart.filter(Boolean);
+
+        setCart(cleanCart);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setHydrated(true);
+      }
+    };
+
+    loadCart();
   }, []);
+
+  // =========================
+  // GUARDAR EN LOCALSTORAGE
+  // =========================
 
   useEffect(() => {
     if (!hydrated) return;
 
     const timeout = setTimeout(() => {
-      localStorage.setItem("cart", JSON.stringify(cart));
+      localStorage.setItem(
+        "cart",
+        JSON.stringify(cart)
+      );
     }, 300);
 
     return () => clearTimeout(timeout);
   }, [cart, hydrated]);
 
-  const addToCart = (product, quantityToAdd = 1) => {
-    setCart((prev) => {
-      const exists = prev.find((p) => p.id === product.id);
+  // =========================
+  // AGREGAR AL CARRITO
+  // =========================
 
-      if (exists) {
-        return prev.map((p) =>
-          p.id === product.id
-            ? { ...p, quantity: p.quantity + quantityToAdd }
-            : p
+  const addToCart = async (
+    product,
+    quantityToAdd = 1
+  ) => {
+    setIsLoading(true);
+
+
+
+    try {
+      // VALIDAR VARIANT ID
+      if (!product.variantId) {
+        console.error(
+          "variantId no existe"
         );
+        return;
       }
 
-      return [...prev, { ...product, quantity: quantityToAdd }];
-    });
-  };
+      const variantDB =
+        await fetchVariantData(
+          product.variantId
+        );
 
-  const increaseQty = (id: number) => {
-    setCart((prev) =>
-      prev.map((item) => {
-        if (item.id === id && item.quantity < (item.stock || 999)) {
-          return { ...item, quantity: item.quantity + 1 };
+      if (!variantDB) {
+        console.error(
+          "No se encontró la variante"
+        );
+        return;
+      }
+
+      setCart((prev) => {
+        // buscar por variante
+        const exists = prev.find(
+          (p) =>
+            p.variantId ===
+            product.variantId
+        );
+
+        // SI YA EXISTE
+        if (exists) {
+          return prev.map((p) => {
+            if (
+              p.variantId ===
+              product.variantId
+            ) {
+              const newQty =
+                p.quantity +
+                quantityToAdd;
+
+              return {
+                ...p,
+                quantity:
+                  newQty >
+                    variantDB.stock
+                    ? variantDB.stock
+                    : newQty,
+                stock: variantDB.stock,
+                price: variantDB.price,
+              };
+            }
+
+            return p;
+          });
         }
-        return item;
-      })
-    );
+
+        // NUEVO ITEM
+        return [
+          ...prev,
+          {
+            ...product,
+
+            quantity:
+              quantityToAdd >
+                variantDB.stock
+                ? variantDB.stock
+                : quantityToAdd,
+
+            stock: variantDB.stock,
+
+            price: variantDB.price,
+          },
+        ];
+      });
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  // =========================
+  // AUMENTAR CANTIDAD
+  // =========================
+
+  const increaseQty = async (
+    variantId: string
+  ) => {
+    setIsLoading(true);
+
+    try {
+      const variantDB =
+        await fetchVariantData(
+          variantId
+        );
+
+      if (!variantDB) return;
+
+      setCart((prev) =>
+        prev.map((item) => {
+          if (
+            item.variantId ===
+            variantId
+          ) {
+            // validar stock actualizado
+            if (
+              item.quantity >=
+              variantDB.stock
+            ) {
+              return {
+                ...item,
+                stock: variantDB.stock,
+                price: variantDB.price,
+              };
+            }
+
+            return {
+              ...item,
+              quantity:
+                item.quantity + 1,
+              stock: variantDB.stock,
+              price: variantDB.price,
+            };
+          }
+
+          return item;
+        })
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const decreaseQty = (id: number) => {
+  // =========================
+  // DISMINUIR CANTIDAD
+  // =========================
+
+  const decreaseQty = async (
+    variantId: string
+  ) => {
+    setIsLoading(true);
+
+    try {
+      const variantDB =
+        await fetchVariantData(
+          variantId
+        );
+
+      if (!variantDB) return;
+
+      setCart((prev) =>
+        prev.map((item) => {
+          if (
+            item.variantId ===
+            variantId &&
+            item.quantity > 1
+          ) {
+            return {
+              ...item,
+              quantity:
+                item.quantity - 1,
+              stock: variantDB.stock,
+              price: variantDB.price,
+            };
+          }
+
+          return item;
+        })
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // =========================
+  // ELIMINAR ITEM
+  // =========================
+
+  const removeItem = (
+    variantId: number
+  ) => {
     setCart((prev) =>
-      prev.map((item) =>
-        item.id === id && item.quantity > 1
-          ? { ...item, quantity: item.quantity - 1 }
-          : item
+      prev.filter(
+        (item) =>
+          item.variantId !== variantId
       )
     );
   };
 
-  const removeItem = (id: number) => {
-    setCart((prev) => prev.filter((item) => item.id !== id));
-  };
+  // =========================
+  // TOTALES
+  // =========================
 
   const subtotal = cart.reduce(
-    (acc, item) => acc + item.price * item.quantity,
+    (acc, item) =>
+      acc + item.price * item.quantity,
     0
   );
 
@@ -87,6 +360,10 @@ export function CartProvider({ children }) {
     (acc, item) => acc + item.quantity,
     0
   );
+
+  // =========================
+  // PROVIDER
+  // =========================
 
   return (
     <CartContext.Provider
@@ -105,7 +382,7 @@ export function CartProvider({ children }) {
         openCart,
         closeCart,
         isLoading,
-        setIsLoading
+        setIsLoading,
       }}
     >
       {children}
@@ -113,4 +390,5 @@ export function CartProvider({ children }) {
   );
 }
 
-export const useCart = () => useContext(CartContext);
+export const useCart = () =>
+  useContext(CartContext);
