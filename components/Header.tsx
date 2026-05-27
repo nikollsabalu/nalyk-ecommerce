@@ -11,6 +11,7 @@ import MenuDropdown from "./MenuDropdown";
 import { createClient } from "@supabase/supabase-js";
 import Logo from "./Logo";
 import { CategoryType, CollectionType } from "@/interfaces/types";
+import { useCollections } from "@/context/CollectionContext";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -19,11 +20,10 @@ const supabase = createClient(
 
 export default function Header() {
   const { cartCount, openCart } = useCart();
+  const { collections, categories } = useCollections();
 
   const [scrolled, setScrolled] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
-  const [categories, setCategories] = useState<CategoryType[]>([]);
-  const [collections, setCollections] = useState<CollectionType[]>([]);
 
   useEffect(() => {
     setIsMounted(true);
@@ -33,40 +33,7 @@ export default function Header() {
     };
 
     window.addEventListener("scroll", onScroll);
-
-    const fetchCategories = async () => {
-      const { data, error } = await supabase
-        .from("categories")
-        .select("id, name, slug")
-        .eq("is_active", true)
-        .order("id");
-
-      if (error) {
-        console.error(error);
-        return;
-      }
-
-      setCategories(data || []);
-    };
-
-    const fetchCollections = async () => {
-      const { data, error } = await supabase
-        .from("collections")
-        .select("id, name, slug, menu_type")
-        .eq("is_active", true)
-        .order("id");
-
-      if (error) {
-        console.error(error);
-        return;
-      }
-
-      setCollections(data || []);
-    };
-
-    fetchCategories();
-    fetchCollections();
-
+   
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 

@@ -3,17 +3,19 @@ import Hero from "@/components/Hero";
 import ProductGrid from "@/components/ProductGrid";
 import CategoryGrid from "@/components/CategoryGrid";
 import CollectionGrid from "@/components/CollectionGrid";
+import { useCollections } from "@/context/CollectionContext";
 
 
 // Definimos la interfaz de las props que el servidor le inyectará al Home
 interface HomeProps {
   products: [];
-  categories: [];
-  collections: [];
   error?: string;
 }
 
-export default function Home({ products, categories, collections, error }: HomeProps) {
+export default function Home({ products, error }: HomeProps) {
+
+
+  const { collections, categories } = useCollections();
 
   if (error) {
     console.error("Error al cargar productos desde Supabase:", error);
@@ -26,15 +28,15 @@ export default function Home({ products, categories, collections, error }: HomeP
       {/* Le pasamos la data real traída y formateada desde el servidor */}
 
       <CategoryGrid
-        categories={categories}
-      />
+        categories={categories} />
 
       <ProductGrid
         title={"Los más vendidos"}
         products={products}
       />
 
-      <CollectionGrid 
+      <CollectionGrid
+        title="Colecciones"
         collections={collections}
       />
     </div>
@@ -55,7 +57,8 @@ export async function getServerSideProps() {
         product_variants (
           id,
           price,
-          images
+          images,
+          stock
         )
       `)
       .eq("is_active", true)
@@ -84,30 +87,14 @@ export async function getServerSideProps() {
         slug: item.slug || "",
         price: priceFromVariant,
         images: finalImages,
+        product_variants: variants
 
       };
     }) || [];
 
-
-
-    const { data: categories } = await supabase
-      .from("categories")
-      .select("id, name, slug, image")
-      .eq("is_active", true)
-      .order("id");
-
-
-    const { data: collections } = await supabase
-      .from("collections")
-      .select("id, name, slug, image")
-      .eq("is_active", true)
-      .order("id");
-
     return {
       props: {
         products: mappedProducts,
-        categories,
-        collections
       },
     };
   } catch (err) {

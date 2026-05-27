@@ -9,6 +9,10 @@ import { getRealStock } from "@/lib/actions";
 
 import { LoadingSpinner } from "@/components/Loading";
 import { sanitizeHTML } from "@/lib/sanitize";
+import ProductGrid from "@/components/ProductGrid";
+import CollectionGrid from "@/components/CollectionGrid";
+import { useCollections } from "@/context/CollectionContext";
+import { ProductType } from "@/interfaces/types";
 
 
 interface ProductDetailProps {
@@ -17,17 +21,8 @@ interface ProductDetailProps {
     price: number;
     description: string;
     images: string[];
-    relatedProducts: RelatedProduct[];
+    relatedProducts: ProductType[];
     variants: Variant[];
-}
-
-interface RelatedProduct {
-    id: string;
-    name: string;
-    title?: string;
-    slug: string;
-    price: number;
-    images: string[];
 }
 
 interface Variant {
@@ -70,6 +65,11 @@ export default function ProductDetail({
     variants = [],
 }: ProductDetailProps) {
 
+    const colorOrder: Record<string, number> = {
+        dorado: 1,
+        plateado: 2,
+    };
+
     const {
         addToCart,
         openCart,
@@ -78,9 +78,19 @@ export default function ProductDetail({
         setIsLoading
     } = useCart();
 
+    const { collections } = useCollections();
+
+    const sortedVariants = [...variants].sort((a, b) => {
+        return (
+            (colorOrder[a.color?.toLowerCase()] ?? 999) -
+            (colorOrder[b.color?.toLowerCase()] ?? 999)
+        );
+    });
+
+
     const [selectedVariant, setSelectedVariant] =
         useState<Variant>(
-            variants[0] || {
+            sortedVariants[0] || {
                 id: "base",
                 price: price || 0,
                 color: "Único",
@@ -92,20 +102,12 @@ export default function ProductDetail({
     const [quantity, setQuantity] =
         useState<number>(1);
 
-    // =========================
-    // CAMBIAR VARIANTE
-    // =========================
-
     const handleVariantChange = (
         variant: Variant
     ) => {
         setSelectedVariant(variant);
         setQuantity(1);
     };
-
-    // =========================
-    // AUMENTAR CANTIDAD
-    // =========================
 
     const handleIncrease = () => {
         const maxStock =
@@ -116,9 +118,6 @@ export default function ProductDetail({
         }
     };
 
-    // =========================
-    // AGREGAR AL CARRITO
-    // =========================
 
     const handleAddToCart = async () => {
         setIsLoading(true);
@@ -213,8 +212,6 @@ export default function ProductDetail({
     return (
         <section className="bg-white px-6 py-14 text-[#252525] lg:px-16 font-commissioner">
 
-            {/* BREADCRUMB */}
-
             <div className="mx-auto mb-6 max-w-[1400px] space-x-1 text-xs text-zinc-500">
                 <Link href="/">
                     Inicio
@@ -227,11 +224,7 @@ export default function ProductDetail({
                 </span>
             </div>
 
-            {/* CONTENT */}
-
             <div className="mx-auto grid max-w-[1400px] gap-14 lg:grid-cols-[1fr_500px]">
-
-                {/* IMAGES */}
 
                 <div>
                     <div className="grid grid-cols-2 gap-2">
@@ -260,13 +253,18 @@ export default function ProductDetail({
                     </div>
                 </div>
 
-                {/* INFO */}
-
                 <div className="flex flex-col justify-start">
 
-                    <h1 className=" text-lg font-normal uppercase tracking-wide text-[#252525]">
-                        {name}
-                    </h1>
+                    <div className="flex gap-2  items-center">
+                        <h1 className=" text-lg font-normal uppercase tracking-wide text-[#252525]">
+                            {name}
+                        </h1>
+                        {isOutOfStock && (
+                            <div className="bg-black text-white text-[10px] px-2 py-1 uppercase rounded-full">
+                                Agotado
+                            </div>
+                        )}
+                    </div>
 
                     <p className="mt-3 text-xl font-medium text-zinc-800 font-commissioner">
                         S/.{" "}
@@ -293,7 +291,7 @@ export default function ProductDetail({
 
                             <div className="flex flex-wrap gap-2.5">
 
-                                {variants.map((v) => (
+                                {sortedVariants.map((v) => (
 
                                     <button
                                         key={v.id}
@@ -448,7 +446,15 @@ export default function ProductDetail({
 
             </div>
 
-            {/* LOADING */}
+            <ProductGrid
+                title={"TAMBIÉN TE PUEDE INTERESAR"}
+                products={relatedProducts}
+            />
+
+            <CollectionGrid
+                title="Colecciones"
+                collections={collections}
+            />
 
             {isLoading && (
                 <LoadingSpinner />

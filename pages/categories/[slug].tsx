@@ -1,7 +1,10 @@
 import { GetServerSideProps } from "next";
 import { createClient } from "@supabase/supabase-js";
 import ProductGrid from "@/components/ProductGrid";
-import { CategoryType, ProductType } from "@/interfaces/types";
+import { ProductType } from "@/interfaces/types";
+import CollectionGrid from "@/components/CollectionGrid";
+import { useCollections } from "@/context/CollectionContext";
+import CategoryGrid from "@/components/CategoryGrid";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -9,25 +12,46 @@ const supabase = createClient(
 );
 
 interface Props {
-  category: CategoryType;
   products: ProductType[];
+  slug: string
 }
 
 export default function CategoryPage({
-  category,
   products,
+  slug
 }: Props) {
 
-  console.log(products, 'products');
+  const { collections, categories } = useCollections();
+  const category = categories.find(
+    (c) => c.slug === slug
+  );
+
+  const otherCategories = categories.filter(
+    (c) => c.slug !== slug
+  );
+
+  const filteredProducts = products.filter(
+  (p) => p.category_id === category?.id
+);
 
   return (
     <main className="px-10 py-20">
       <h1 className="text-2xl mb-10 px-52">
-        {category.name}
+        {category?.name}
       </h1>
 
       <ProductGrid
-        products={products}
+        products={filteredProducts}
+      />
+
+      <CategoryGrid
+        title="Explora otras categorías "
+        categories={otherCategories}
+      />
+
+      <CollectionGrid
+        title="Colecciones"
+        collections={collections}
       />
     </main>
   );
@@ -38,26 +62,20 @@ export const getServerSideProps: GetServerSideProps = async ({
 }) => {
   const slug = params?.slug;
 
-
-  const { data: category } = await supabase
-    .from("categories")
-    .select("*")
-    .eq("slug", slug)
-    .single();
-
   const { data: productsData } = await supabase
     .from("products")
     .select(`
-            id,
-            name,
-            slug,
-            product_variants (
-              id,
-              price,
-              images
-            )
-          `)
-    .eq("category_id", category.id)
+      id,
+      name,
+      slug,
+      category_id,
+      product_variants (
+        id,
+        price,
+        images,
+        stock
+      )
+    `)
     .eq("is_active", true)
     .order("id", { ascending: true });
 
@@ -66,16 +84,19 @@ export const getServerSideProps: GetServerSideProps = async ({
       id: product.id,
       name: product.name,
       slug: product.slug,
+      category_id: product.category_id,
       price: product.product_variants?.[0]?.price ?? 0,
       images: product.product_variants?.[0]?.images ?? [],
+      product_variants: product?.product_variants
+      
     })) ?? [];
 
 
 
   return {
     props: {
-      category,
       products,
+      slug
     },
   };
 };

@@ -20,7 +20,7 @@ export default function CategoryCard({ category }: CategoryProps) {
           width={500}
           height={700}
           className="
-          h-[420px]
+          h-[620px]
           w-full
           object-cover
           transition-transform

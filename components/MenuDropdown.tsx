@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { FiChevronDown, FiChevronUp } from "react-icons/fi";
 
 interface Category {
@@ -16,18 +16,41 @@ interface Props {
   type: string;
 }
 
-export default function MenuDropdown({ options, optionTitle, type }: Props) {
+export default function MenuDropdown({
+  options,
+  optionTitle,
+  type,
+}: Props) {
   const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  // 🔥 cerrar al hacer click afuera
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (ref.current && !ref.current.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   return (
-    <div className="relative">
-      {/* BUTTON */}
+    <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-2 uppercase tracking-wide"
+        className="flex items-center gap-2 uppercase tracking-wide cursor-pointer"
       >
         {optionTitle}
-        {open ? <FiChevronUp size={16} className="cursor-pointer" /> : <FiChevronDown size={16} className="cursor-pointer" />}
+        {open ? (
+          <FiChevronUp size={16} />
+        ) : (
+          <FiChevronDown size={16} />
+        )}
       </button>
 
       {/* DROPDOWN */}
@@ -38,8 +61,8 @@ export default function MenuDropdown({ options, optionTitle, type }: Props) {
               <Link
                 key={menu.id}
                 href={`/${type}/${menu.slug}`}
-                className="text-xs tracking-wide hover:font-medium transition"
                 onClick={() => setOpen(false)}
+                className="text-xs tracking-wide hover:font-medium transition"
               >
                 {menu.name}
               </Link>

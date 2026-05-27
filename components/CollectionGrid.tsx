@@ -3,20 +3,22 @@ import { CollectionType } from "@/interfaces/types";
 import { CollectionCard } from "./CollectionCard";
 
 
-interface CategoryGridProps {
-    collections: CollectionType[]
+interface CollectionGridProps {
+    collections: CollectionType[];
+    title: string;
 }
 
-export default function CategoryGrid({
-    collections
-}: CategoryGridProps) {
+export default function CollectionGrid({
+    collections,
+    title
+}: CollectionGridProps) {
 
     return (
-        <div className="w-full px-52 py-24 max-lg:px-20 max-sm:px-10">
+        <div className="w-full px-52 pt-10 pb-24 max-lg:px-20 max-sm:px-10">
 
             <div className="my-10 flex justify-start">
-                <h2 className="uppercase tracking-[0.08em] text-lg"
-                >  Otras colecciones
+                <h2 className="uppercase tracking-[0.08em] text-lg">
+                    {title}
                 </h2>
             </div>
 

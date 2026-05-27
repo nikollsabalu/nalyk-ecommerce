@@ -1,6 +1,7 @@
 import { GetServerSideProps } from "next";
 import { supabase } from "@/lib/supabase";
 import ProductDetail from "./ProductDetails";
+import {  FormattedRelatedProduct, RelatedProductDB } from "@/interfaces/types";
 
 interface Variant {
   id: string;
@@ -9,7 +10,7 @@ interface Variant {
   images: string[];
   stock: number;
 }
- 
+
 interface ProductPageProps {
   product: {
     id: string;
@@ -21,10 +22,10 @@ interface ProductPageProps {
     variants: Variant[];
   } | null;
   relatedProducts: [];
-  error: string | null;
+  error: string | null; 
 }
 
-export default function ProductPage({ product, relatedProducts, error }: ProductPageProps) {
+export default function ProductPage({ product, relatedProducts, error}: ProductPageProps) {
   if (error) {
     return <div className="p-10 text-center text-red-500">Error: {error}</div>;
   }
@@ -35,13 +36,14 @@ export default function ProductPage({ product, relatedProducts, error }: Product
 
   return (
     <ProductDetail
-    id={product.id}
+      key={product.id}
+      id={product.id}
       name={product.name}
       price={product.price}
-      description={product.description} 
+      description={product.description}
       images={product.images}
       relatedProducts={relatedProducts}
-      variants={product.variants}
+      variants={product.variants} 
     />
   );
 }
@@ -118,23 +120,26 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       variants: formattedVariants
     };
 
-    const formattedRelated = relatedData?.map((item: any) => {
-      const variants = item.product_variants || [];
-      const firstVariant = variants[0] || {};
+    const formattedRelated: FormattedRelatedProduct[] =
+      relatedData?.map((item: RelatedProductDB) => {
+        const variants = item.product_variants ?? [];
+        const firstVariant = variants[0];
 
-      const rImages = firstVariant.images && Array.isArray(firstVariant.images)
-        ? firstVariant.images.filter(Boolean)
-        : ["https://via.placeholder.com/400"];
+        const rImages =
+          firstVariant?.images && Array.isArray(firstVariant.images)
+            ? firstVariant.images.filter(Boolean)
+            : ["https://via.placeholder.com/400"];
 
-      return {
-        id: String(item.id),
-        name: item.name || "",
-        slug: item.slug || "",
-        price: firstVariant.price ? Number(firstVariant.price) : 0,
-        images: rImages,
-        stock: Number(firstVariant.stock || 0)
-      };
-    }) || [];
+        return {
+          id: String(item.id),
+          name: item.name ?? "",
+          slug: item.slug ?? "",
+          price: firstVariant?.price ? Number(firstVariant.price) : 0,
+          images: rImages,
+          stock: Number(firstVariant?.stock ?? 0),
+          product_variants : variants
+        };
+      }) ?? [];
 
     return {
       props: {

@@ -17,17 +17,9 @@ export function CartProvider({ children }) {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  // =========================
-  // DRAWER
-  // =========================
-
   const openCart = () => setIsCartOpen(true);
-
   const closeCart = () => setIsCartOpen(false);
 
-  // =========================
-  // OBTENER VARIANTE DESDE SUPABASE
-  // =========================
 
   const fetchVariantData = async (
     variantId: string
@@ -40,7 +32,8 @@ export function CartProvider({ children }) {
           .select(`
           id,
           price,
-          stock
+          stock,
+          color
         `)
           .eq("id", variantId)
           .single();
@@ -52,12 +45,7 @@ export function CartProvider({ children }) {
 
       return {
         id: data.id,
-
-        // IMPORTANTE
-        // convertir numeric/string -> number
-
         price: Number(data.price),
-
         stock: Number(data.stock),
       };
 
@@ -68,10 +56,6 @@ export function CartProvider({ children }) {
       return null;
     }
   };
-
-  // =========================
-  // HIDRATAR CARRITO
-  // =========================
 
   useEffect(() => {
     const loadCart = async () => {
@@ -125,10 +109,6 @@ export function CartProvider({ children }) {
     loadCart();
   }, []);
 
-  // =========================
-  // GUARDAR EN LOCALSTORAGE
-  // =========================
-
   useEffect(() => {
     if (!hydrated) return;
 
@@ -142,9 +122,6 @@ export function CartProvider({ children }) {
     return () => clearTimeout(timeout);
   }, [cart, hydrated]);
 
-  // =========================
-  // AGREGAR AL CARRITO
-  // =========================
 
   const addToCart = async (
     product,
@@ -234,9 +211,6 @@ export function CartProvider({ children }) {
       setIsLoading(false);
     }
   };
-  // =========================
-  // AUMENTAR CANTIDAD
-  // =========================
 
   const increaseQty = async (
     variantId: string
@@ -286,10 +260,6 @@ export function CartProvider({ children }) {
     }
   };
 
-  // =========================
-  // DISMINUIR CANTIDAD
-  // =========================
-
   const decreaseQty = async (
     variantId: string
   ) => {
@@ -327,9 +297,6 @@ export function CartProvider({ children }) {
     }
   };
 
-  // =========================
-  // ELIMINAR ITEM
-  // =========================
 
   const removeItem = (
     variantId: number
@@ -342,9 +309,6 @@ export function CartProvider({ children }) {
     );
   };
 
-  // =========================
-  // TOTALES
-  // =========================
 
   const subtotal = cart.reduce(
     (acc, item) =>
@@ -360,10 +324,6 @@ export function CartProvider({ children }) {
     (acc, item) => acc + item.quantity,
     0
   );
-
-  // =========================
-  // PROVIDER
-  // =========================
 
   return (
     <CartContext.Provider
