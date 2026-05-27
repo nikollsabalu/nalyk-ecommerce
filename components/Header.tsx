@@ -1,15 +1,29 @@
-import { useEffect, useState } from "react";
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
 import { AiOutlineShoppingCart } from "react-icons/ai";
-import Image from "next/image";
+import { motion } from "motion/react";
+
 import Link from "next/link";
 import CartDrawer from "./cartDrawer";
 import { useCart } from "../context/CartContext";
+import MenuDropdown from "./MenuDropdown";
+import { createClient } from "@supabase/supabase-js";
+import Logo from "./Logo";
+import { CategoryType, CollectionType } from "@/interfaces/types";
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
 export default function Header() {
   const { cartCount, openCart } = useCart();
+
   const [scrolled, setScrolled] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
-
+  const [categories, setCategories] = useState<CategoryType[]>([]);
+  const [collections, setCollections] = useState<CollectionType[]>([]);
 
   useEffect(() => {
     setIsMounted(true);
@@ -19,9 +33,48 @@ export default function Header() {
     };
 
     window.addEventListener("scroll", onScroll);
+
+    const fetchCategories = async () => {
+      const { data, error } = await supabase
+        .from("categories")
+        .select("id, name, slug")
+        .eq("is_active", true)
+        .order("id");
+
+      if (error) {
+        console.error(error);
+        return;
+      }
+
+      setCategories(data || []);
+    };
+
+    const fetchCollections = async () => {
+      const { data, error } = await supabase
+        .from("collections")
+        .select("id, name, slug, menu_type")
+        .eq("is_active", true)
+        .order("id");
+
+      if (error) {
+        console.error(error);
+        return;
+      }
+
+      setCollections(data || []);
+    };
+
+    fetchCategories();
+    fetchCollections();
+
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  const collectionsMenu : CollectionType[] = useMemo(() => {
+  return collections.filter(
+    (collection) => collection.menu_type === "dropdown"
+  );
+}, [collections]);
   return (
     <>
       <header
@@ -29,33 +82,80 @@ export default function Header() {
           }`}
       >
         <nav className="hidden md:flex items-center gap-12">
-          <a href="#" className="font-semibold hover:font-bold">NEW IN</a>
-          <a href="/joyas">Joyas</a>
-          <a href="/colecciones">Colecciones</a>
+          <MenuDropdown options={categories} optionTitle="Joyas" type="categories" />
+          {collections
+            .filter((collection) => collection.menu_type === "featured")
+            .map((collection) => (
+              <Link
+                key={collection.id}
+                href={`/collections/${collection.slug}`}
+                className="text-xs tracking-wide hover:font-medium transition"
+              >
+                {collection.name}
+              </Link>
+            ))}
+
+            { collectionsMenu.length > 0 && <MenuDropdown options={
+            collectionsMenu
+          } optionTitle="Colecciones" type="collections" /> }  
+          
+
         </nav>
 
-        <div className="font-bold text-xl text-white">
-          <Link href="/">
-            <Image
-              src="/logo.svg"
-              alt="Nalyk"
-              width={120}
-              height={32}
-              className="h-8 w-auto hover:cursor-pointer"
-            />
+        <div className="absolute left-1/2 -translate-x-1/2">
+          <Link href="/" className="logo block">
+            <Logo />
           </Link>
         </div>
 
-        <button onClick={openCart} className="hover:cursor-pointer relative">
-          <div className="focus:outline-none hover:cursor-pointer">
+
+        <motion.button
+          onClick={openCart}
+          className="relative hover:cursor-pointer"
+          whileHover={{
+            scale: 1.15
+          }}
+          transition={{
+            duration: 0.2,
+            ease: "easeOut",
+          }}
+        >
+          <motion.div
+            whileHover={{
+              rotate: [-4, 4, -2, 2, 0],
+            }}
+            transition={{
+              duration: 0.45,
+            }}
+          >
             <AiOutlineShoppingCart size={20} />
-          </div>
+          </motion.div>
+
           {isMounted && cartCount > 0 && (
-            <span className="absolute font-commissioner -top-3 -right-3 font-bold flex h-5 w-5 items-center justify-center rounded-full bg-black text-[10px] text-white animate-fade-in">
+            <motion.span
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              className="
+              absolute
+              -top-3
+              -right-3
+              flex
+              h-5
+              w-5
+              items-center
+              justify-center
+              rounded-full
+              bg-black
+              text-[10px]
+              text-white
+              font-bold
+              font-commissioner
+            "
+            >
               {cartCount}
-            </span>
+            </motion.span>
           )}
-        </button>
+        </motion.button>
       </header>
 
       <CartDrawer />

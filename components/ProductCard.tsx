@@ -1,21 +1,14 @@
 // components/products/product?.tsx
 
+import { ProductType } from "@/interfaces/types";
 import Image from "next/image";
 import Link from "next/link";
-
-export interface ProductType {
-    id: number | string;
-    slug: string;
-    name: string;
-    price: number;
-    images: string[];
-}
 
 interface ProductProps {
     product: ProductType;
 }
 
-export default function Product({ product }: ProductProps) {
+export default function ProductCard({ product }: ProductProps) {
 
     if (!product) {
         return <div>Cargando...</div>;
@@ -30,7 +23,7 @@ export default function Product({ product }: ProductProps) {
                 >
                     {/* IMAGE 1 */}
                     <Image
-                        src={product?.images[0] ?? ""}
+                        src={product?.images?.[0] ?? ""}
                         alt="test"
                         layout='fill'
                         objectFit="cover"
@@ -38,7 +31,7 @@ export default function Product({ product }: ProductProps) {
 
                     {/* IMAGE 2 */}
                     <Image
-                        src={product?.images[1] ?? ""}
+                        src={product?.images?.[1] ?? ""}
                         alt={product?.name}
                         layout="fill"
                         objectFit="cover"
@@ -53,7 +46,7 @@ export default function Product({ product }: ProductProps) {
                 </h3>
 
                 <p className=" text-[14px]">
-                    S/. {product?.price.toFixed(2)}
+                    S/. {product?.price?.toFixed(2)}
                 </p>
             </div>
         </article>

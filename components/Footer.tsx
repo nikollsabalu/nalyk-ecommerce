@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { FaInstagram, FaPinterest, FaTiktok } from "react-icons/fa";
+import { motion } from "motion/react";
 
 export const Footer = () => {
 
@@ -74,12 +75,34 @@ export const Footer = () => {
             {network.map((net, i) => {
               const Icon = iconMap[net.name];
               if (!Icon) return null;
-              return (
-                <a key={i} href={net.url} target="_blank" rel="noopener noreferrer">
 
-                  <div key={i} className="w-6 h-6 flex items-center justify-center transition-all duration-500 ease-out cursor-pointer">
+              return (
+                <a
+                  key={i}
+                  href={net.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <motion.div
+                    whileHover={{
+                      y: -2,
+                      rotate: [-3, 3, -2, 2, 0],
+                    }}
+                    transition={{
+                      duration: 0.4,
+                      ease: "easeOut",
+                    }}
+                    className="
+            w-6
+            h-6
+            flex
+            items-center
+            justify-center
+            cursor-pointer
+          "
+                  >
                     <Icon size={20} />
-                  </div>
+                  </motion.div>
                 </a>
               );
             })}
