@@ -54,7 +54,7 @@ export default function CategoryCard({ category }: CategoryProps) {
       "
       >
         <div
-          className="text-white"
+          className="text-white uppercase"
         >
           {category?.name}
         </div>

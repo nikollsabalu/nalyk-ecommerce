@@ -13,7 +13,8 @@ export interface ProductType {
   images: string[];
   category_id?: number;
   is_featured?: boolean;
-  product_variants : ProductVariant[];
+  product_variants: ProductVariant[];
+  is_active: boolean;
 }
 
 export interface CollectionType {
@@ -27,9 +28,14 @@ export interface CollectionType {
 export type ProductVariant = {
   id: string;
   price: number;
-  stock: number;
+  sale_price?: number | null;
+  is_on_sale: boolean;
+  color: string;
   images: string[];
+  stock: number;
 };
+
+
 
 export type RelatedProductDB = {
   id: string | number;
@@ -47,3 +53,18 @@ export type FormattedRelatedProduct = {
   images: string[];
   stock: number;
 };
+
+export interface ProductFromRelation {
+  id: string;
+  name: string;
+  slug: string;
+  is_active: boolean;
+
+  product_variants: {
+    id: string;
+    price: number;
+    images: string[];
+    stock: number;
+    color: string;
+  }[];
+}

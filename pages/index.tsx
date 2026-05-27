@@ -47,20 +47,22 @@ export default function Home({ products, error }: HomeProps) {
 export async function getServerSideProps() {
   try {
 
-    // En tu getServerSideProps:
     const { data: dbProducts, error } = await supabase
       .from("products")
       .select(`
-        id,
-        name,
-        slug,
-        product_variants (
-          id,
-          price,
-          images,
-          stock
-        )
-      `)
+    id,
+    name,
+    slug,
+    product_variants (
+      id,
+      price,
+      sale_price,
+      is_on_sale,
+      images,
+      stock,
+      color
+    )
+  `)
       .eq("is_active", true)
       .order("id", { ascending: true });
 
@@ -68,29 +70,60 @@ export async function getServerSideProps() {
       return { props: { products: [], error: error.message } };
     }
 
-    const mappedProducts = dbProducts?.map((item) => {
-      const variants = item.product_variants || [];
-      const priceFromVariant = variants[0]?.price ? Number(variants[0].price) : 0;
+    const colorOrder: Record<string, number> = {
+      dorado: 1,
+      plateado: 2,
+    };
 
-      const variantImages = variants[0]?.images && Array.isArray(variants[0].images)
-        ? variants[0].images.filter(Boolean)
-        : [];
+    const mappedProducts =
+      dbProducts?.map((item) => {
 
-      // Si el array viene vacío, le metemos el placeholder por seguridad
-      const finalImages = variantImages.length > 0
-        ? variantImages
-        : ["https://via.placeholder.com/400"];
+        const sortedVariants =
+          [...(item.product_variants || [])]
+            .sort((a, b) =>
+              (colorOrder[a.color?.toLowerCase()] ?? 999) -
+              (colorOrder[b.color?.toLowerCase()] ?? 999)
+            );
 
-      return {
-        id: String(item.id),
-        name: item.name || "",
-        slug: item.slug || "",
-        price: priceFromVariant,
-        images: finalImages,
-        product_variants: variants
+        const firstVariant =
+          sortedVariants[0];
 
-      };
-    }) || [];
+        const variantImages =
+          firstVariant?.images &&
+            Array.isArray(firstVariant.images)
+            ? firstVariant.images.filter(Boolean)
+            : [];
+
+        const finalImages =
+          variantImages.length > 0
+            ? variantImages
+            : ["https://via.placeholder.com/400"];
+
+        return {
+          id: String(item.id),
+
+          name: item.name || "",
+
+          slug: item.slug || "",
+
+          price:
+            Number(firstVariant?.price ?? 0),
+
+          sale_price:
+            firstVariant?.sale_price
+              ? Number(firstVariant.sale_price)
+              : null,
+
+          is_on_sale:
+            Boolean(firstVariant?.is_on_sale),
+
+          images:
+            finalImages,
+
+          product_variants:
+            sortedVariants,
+        };
+      }) || [];
 
     return {
       props: {

@@ -47,6 +47,12 @@ export const Footer = () => {
             <h4 className="mb-4 uppercase font-semibold">INFORMACIÓN</h4>
             <Link href="/envios" className="hover:underline">Envíos y Devoluciones</Link>
             <p className="hover:underline">Política de Privacidad</p>
+            <Link
+              href={`https://wa.me/51947194753?text=Hola,%20quiero%20información%20sobre%20sus%20joyas`}
+              target="_blank"
+            >
+              Contáctanos
+            </Link>
           </div>
           <div className="pr-8 flex flex-col gap-3 items-start ">
             <h4 className="mb-4 uppercase font-semibold">INTERESES</h4>
@@ -56,14 +62,30 @@ export const Footer = () => {
 
         <div className="flex flex-col justify-center items-center px-8">
           <Link href={"/"}>
-            <Image
-              src="/logo.svg"
-              alt="Logo"
-              width={100} // Aumenta el ancho/alto para que sea visible
-              height={100}
-              className="h-5 w-auto"
-            />
+
+            <motion.div
+              whileHover={{
+                y: -2,
+                rotate: [-3, 3, -2, 2, 0],
+              }}
+              transition={{
+                duration: 0.4,
+                ease: "easeOut",
+              }}
+              className="flex items-center justify-center cursor-pointer">
+              <Image
+                src="/logo.svg"
+                alt="Logo"
+                width={100} // Aumenta el ancho/alto para que sea visible
+                height={100}
+                className="h-5 w-auto"
+              />
+            </motion.div>
+
           </Link>
+          <div className="pt-1 text-center text-xs uppercase ">
+            LIMA - PERÚ
+          </div>
           <div suppressHydrationWarning className="  pt-5 text-center text-xs ">
             {currentYear} &copy; Todos los derechos reservados
           </div>
@@ -93,12 +115,12 @@ export const Footer = () => {
                       ease: "easeOut",
                     }}
                     className="
-            w-6
-            h-6
-            flex
-            items-center
-            justify-center
-            cursor-pointer
+                    w-6
+                    h-6
+                    flex
+                    items-center
+                    justify-center
+                    cursor-pointer
           "
                   >
                     <Icon size={20} />

@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 const Hero = () => {
 
   return (
@@ -21,9 +23,9 @@ const Hero = () => {
           </p>
         </div>
 
-        <a href="#proyectos" className="font-elms bg-white font-semibold rounded-full text-black flex items-center mt-14 border border-white/40 px-8 py-3 text-md hover:bg-white hover:text-black transition-colors">
+        <Link href="/collections/new-in" className="font-elms bg-white font-semibold rounded-full text-black flex items-center mt-14 border border-white/40 px-8 py-3 text-md hover:bg-white hover:text-black transition-colors">
           <span>  Nueva colección </span>
-        </a>
+        </Link>
       </div>
     </section>
 

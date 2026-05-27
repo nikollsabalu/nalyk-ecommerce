@@ -1,15 +1,7 @@
 import { GetServerSideProps } from "next";
 import { supabase } from "@/lib/supabase";
 import ProductDetail from "./ProductDetails";
-import {  FormattedRelatedProduct, RelatedProductDB } from "@/interfaces/types";
-
-interface Variant {
-  id: string;
-  price: number;
-  color: string;
-  images: string[];
-  stock: number;
-}
+import { FormattedRelatedProduct, ProductVariant, RelatedProductDB } from "@/interfaces/types";
 
 interface ProductPageProps {
   product: {
@@ -19,13 +11,13 @@ interface ProductPageProps {
     price: number;
     description: string;
     images: string[];
-    variants: Variant[];
+    variants: ProductVariant[];
   } | null;
   relatedProducts: [];
-  error: string | null; 
+  error: string | null;
 }
 
-export default function ProductPage({ product, relatedProducts, error}: ProductPageProps) {
+export default function ProductPage({ product, relatedProducts, error }: ProductPageProps) {
   if (error) {
     return <div className="p-10 text-center text-red-500">Error: {error}</div>;
   }
@@ -43,7 +35,7 @@ export default function ProductPage({ product, relatedProducts, error}: ProductP
       description={product.description}
       images={product.images}
       relatedProducts={relatedProducts}
-      variants={product.variants} 
+      variants={product.variants}
     />
   );
 }
@@ -64,7 +56,9 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
           price,
           images,
           color,
-          stock
+          stock,
+          sale_price,
+          is_on_sale
         )
       `)
       .eq("slug", slug)
@@ -90,7 +84,10 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
           id,
           price,
           images,
-          stock
+          stock,
+          color,
+          sale_price,
+          is_on_sale
         )
       `)
       .neq("id", productData.id)
@@ -100,10 +97,27 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
     const formattedVariants = dbVariants.map((v) => ({
       id: String(v.id),
+
       price: Number(v.price) || 0,
-      color: v.color || 'Único',
-      images: Array.isArray(v.images) ? v.images.filter(Boolean) : ["https://via.placeholder.com/400"],
-      stock: Number(v.stock || 0)
+
+      sale_price:
+        v.sale_price
+          ? Number(v.sale_price)
+          : null,
+
+      is_on_sale:
+        Boolean(v.is_on_sale),
+
+      color:
+        v.color || "Único",
+
+      images:
+        Array.isArray(v.images)
+          ? v.images.filter(Boolean)
+          : ["https://via.placeholder.com/400"],
+
+      stock:
+        Number(v.stock || 0)
     }));
 
     const mainVariants = productData.product_variants || [];
@@ -137,7 +151,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
           price: firstVariant?.price ? Number(firstVariant.price) : 0,
           images: rImages,
           stock: Number(firstVariant?.stock ?? 0),
-          product_variants : variants
+          product_variants: variants
         };
       }) ?? [];
 

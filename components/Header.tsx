@@ -33,23 +33,28 @@ export default function Header() {
     };
 
     window.addEventListener("scroll", onScroll);
-   
+
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  const collectionsMenu : CollectionType[] = useMemo(() => {
-  return collections.filter(
-    (collection) => collection.menu_type === "dropdown"
-  );
-}, [collections]);
+  const collectionsMenu: CollectionType[] = useMemo(() => {
+    return collections.filter(
+      (collection) => collection.menu_type === "dropdown"
+    );
+  }, [collections]);
   return (
     <>
       <header
         className={`sticky font-commissioner top-0 left-0 z-20 w-full px-8 md:px-14 py-8 flex items-center justify-between text-xs transition-all duration-300 ${scrolled ? "bg-white shadow-sm" : "bg-white"
           }`}
       >
-        <nav className="hidden md:flex items-center gap-12">
+        <nav className="hidden md:flex items-center gap-5">
           <MenuDropdown options={categories} optionTitle="Joyas" type="categories" />
+
+          {collectionsMenu.length > 0 && <MenuDropdown options={
+            collectionsMenu
+          } optionTitle="Colecciones" type="collections" />}
+
           {collections
             .filter((collection) => collection.menu_type === "featured")
             .map((collection) => (
@@ -62,10 +67,6 @@ export default function Header() {
               </Link>
             ))}
 
-            { collectionsMenu.length > 0 && <MenuDropdown options={
-            collectionsMenu
-          } optionTitle="Colecciones" type="collections" /> }  
-          
 
         </nav>
 

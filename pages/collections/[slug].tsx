@@ -1,7 +1,7 @@
 import { GetServerSideProps } from "next";
 import { createClient } from "@supabase/supabase-js";
 import ProductGrid from "@/components/ProductGrid";
-import { CollectionType, ProductType } from "@/interfaces/types";
+import { CollectionType, ProductFromRelation, ProductType } from "@/interfaces/types";
 import CollectionGrid from "@/components/CollectionGrid";
 import { useCollections } from "@/context/CollectionContext";
 
@@ -26,10 +26,15 @@ export default function CollectionPage({
     (c) => c.slug !== collection.slug
   );
 
+  const current = collections.filter(
+    (c) => c.slug === collection.slug
+  );
+
   return (
     <main className="px-10 py-20">
       <h1 className="text-2xl mb-10 px-52">
-        COLECCIÓN {collection.name}
+        {current[0]?.slug !== "new-in" && "COLECCIÓN "}
+         {collection.name}
       </h1>
 
       <ProductGrid
@@ -52,43 +57,89 @@ export default function CollectionPage({
 export const getServerSideProps: GetServerSideProps = async ({ params }) => {
   const slug = params?.slug;
 
-  // 1. COLLECTION ACTUAL (necesaria para ID)
+  // COLLECTION
   const { data: collection } = await supabase
     .from("collections")
     .select("*")
     .eq("slug", slug)
     .single();
 
-  // 2. PRODUCTS FILTRADOS EN BD (CORRECTO)
+  if (!collection) {
+    return {
+      notFound: true,
+    };
+  }
+
+  // PRODUCTS FROM RELATION TABLE
   const { data: productsData } = await supabase
-    .from("products")
+    .from("product_collections")
     .select(`
-      id,
-      name,
-      slug,
-      collection_id,
-      product_variants (
+      products:product_id (
         id,
-        price,
-        images,
-        stock
+        name,
+        slug,
+        is_active,
+        product_variants (
+          id,
+          price,
+          images,
+          stock,
+          color
+        )
       )
     `)
-    .eq("collection_id", collection.id)
-    .eq("is_active", true)
-    .order("id", { ascending: true });
+    .eq("collection_id", collection.id);
 
-  const products =
-    productsData?.map((product) => ({
-      id: product.id,
-      name: product.name,
-      slug: product.slug,
-      price: product.product_variants?.[0]?.price ?? 0,
-      images: product.product_variants?.[0]?.images ?? [],
-      stock: product.product_variants?.[0]?.stock ?? 0,
-      product_variants: product?.product_variants
-    })) ?? [];
+  const colorOrder: Record<string, number> = {
+    dorado: 1,
+    plateado: 2,
+  };
 
+ const products =
+  productsData
+    ?.flatMap(
+      (item) =>
+        item.products ?? []
+    )
+
+    .filter(
+      (product): product is ProductFromRelation =>
+        !!product &&
+        product.is_active
+    )
+
+    .map((product) => {
+
+      const sortedVariants =
+        [...(product.product_variants ?? [])]
+          .sort((a, b) =>
+            (colorOrder[a.color?.toLowerCase()] ?? 999)
+            -
+            (colorOrder[b.color?.toLowerCase()] ?? 999)
+          );
+
+      const firstVariant =
+        sortedVariants[0];
+
+      return {
+        id: product.id,
+        name: product.name,
+        slug: product.slug,
+
+        price:
+          firstVariant?.price ?? 0,
+
+        images:
+          firstVariant?.images ?? [],
+
+        stock:
+          firstVariant?.stock ?? 0,
+
+        product_variants:
+          sortedVariants,
+      };
+    }) ?? [];
+    
   return {
     props: {
       collection,

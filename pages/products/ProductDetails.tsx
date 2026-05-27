@@ -12,7 +12,7 @@ import { sanitizeHTML } from "@/lib/sanitize";
 import ProductGrid from "@/components/ProductGrid";
 import CollectionGrid from "@/components/CollectionGrid";
 import { useCollections } from "@/context/CollectionContext";
-import { ProductType } from "@/interfaces/types";
+import { ProductType, ProductVariant } from "@/interfaces/types";
 
 
 interface ProductDetailProps {
@@ -22,16 +22,9 @@ interface ProductDetailProps {
     description: string;
     images: string[];
     relatedProducts: ProductType[];
-    variants: Variant[];
+    variants: ProductVariant[];
 }
-
-interface Variant {
-    id: string;
-    price: number;
-    color: string;
-    images: string[];
-    stock: number;
-}
+ 
 
 const getDeliveryDateText = (): string => {
     const date = new Date();
@@ -89,13 +82,15 @@ export default function ProductDetail({
 
 
     const [selectedVariant, setSelectedVariant] =
-        useState<Variant>(
+        useState<ProductVariant>(
             sortedVariants[0] || {
                 id: "base",
                 price: price || 0,
                 color: "Único",
                 images: images,
                 stock: 99,
+                is_on_sale: false,
+                sale_price: price || 0
             }
         );
 
@@ -103,7 +98,7 @@ export default function ProductDetail({
         useState<number>(1);
 
     const handleVariantChange = (
-        variant: Variant
+        variant: ProductVariant
     ) => {
         setSelectedVariant(variant);
         setQuantity(1);
@@ -117,6 +112,8 @@ export default function ProductDetail({
             setQuantity((prev) => prev + 1);
         }
     };
+
+    console.log(selectedVariant, 'selectedVariant');
 
 
     const handleAddToCart = async () => {
@@ -229,8 +226,7 @@ export default function ProductDetail({
                 <div>
                     <div className="grid grid-cols-2 gap-2">
 
-                        {(selectedVariant.images || images)
-                            ?.slice(0, 2)
+                        {(selectedVariant.images || images) 
                             ?.map((item, index) => (
 
                                 <div
@@ -266,12 +262,30 @@ export default function ProductDetail({
                         )}
                     </div>
 
-                    <p className="mt-3 text-xl font-medium text-zinc-800 font-commissioner">
-                        S/.{" "}
-                        {(selectedVariant.price || price)?.toFixed(
-                            2
-                        )}
-                    </p>
+                    <div className="mt-3 flex items-center gap-3">
+                        <span className="text-base font-medium text-zinc-800">
+                            S/. {
+                                (
+                                    selectedVariant.is_on_sale &&
+                                        selectedVariant.sale_price
+                                        ? selectedVariant.sale_price
+                                        : selectedVariant.price
+                                ).toFixed(2)
+                            }
+                        </span>
+                        {selectedVariant.is_on_sale &&
+                            selectedVariant.sale_price && (
+
+                                <div className="flex items-center gap-1">
+                                    <span className="text-zinc-400 line-through text-base">
+                                        S/. {selectedVariant.price.toFixed(2)}
+                                    </span>
+
+                                    <span className="text-[11px] bg-[#940000] text-white px-2 py-1 rounded-md "> Ahorra: S/ { (selectedVariant.price - selectedVariant.sale_price).toFixed(2)} </span>
+                                </div>
+                            )}
+
+                    </div>
 
                     <hr className="my-6 border-zinc-200" />
 
@@ -300,14 +314,14 @@ export default function ProductDetail({
                                         }
                                         className={`h-5 w-5 border transition-all hover:cursor-pointer
                                         ${selectedVariant.id === v.id
-                                                ? "scale-105 border-[#252525]"
+                                                ? "scale-105 border-black"
                                                 : "border-zinc-300"
                                             }`}
                                         style={{
                                             backgroundColor:
                                                 v.color === "dorado"
-                                                    ? "#ECC046"
-                                                    : "#ACA89C",
+                                                    ? "#F3C332"
+                                                    : "#C0C0C0",
                                         }}
                                     />
 
