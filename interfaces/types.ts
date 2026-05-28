@@ -68,3 +68,12 @@ export interface ProductFromRelation {
     color: string;
   }[];
 }
+
+export interface PromotionType {
+  id: number;
+  background_color: string;
+  text_color: string;
+  text: string;
+  ends_at: string;
+
+}

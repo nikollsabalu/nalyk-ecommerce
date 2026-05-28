@@ -114,14 +114,7 @@ export const Footer = () => {
                       duration: 0.4,
                       ease: "easeOut",
                     }}
-                    className="
-                    w-6
-                    h-6
-                    flex
-                    items-center
-                    justify-center
-                    cursor-pointer
-          "
+                    className="w-6 h-6 flex items-center justify-center cursor-pointer"
                   >
                     <Icon size={20} />
                   </motion.div>

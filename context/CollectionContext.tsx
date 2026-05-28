@@ -7,19 +7,21 @@ import {
     useState,
 } from "react";
 import { createClient } from "@supabase/supabase-js";
-import { CategoryType, CollectionType } from "@/interfaces/types";
+import { CategoryType, CollectionType, PromotionType } from "@/interfaces/types";
 
 
 
 type CollectionsContextType = {
     collections: CollectionType[];
     categories: CategoryType[];
+    promotions: PromotionType[];
     loading: boolean;
 };
 
 
 const CollectionsContext = createContext<CollectionsContextType>({
     collections: [],
+    promotions: [],
     categories: [],
     loading: true,
 });
@@ -37,6 +39,7 @@ export function CollectionsProvider({
 }) {
     const [collections, setCollections] = useState<CollectionType[]>([]);
     const [categories, setCategories] = useState<CategoryType[]>([]);
+    const [promotions, setPromotions] = useState<PromotionType[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -65,15 +68,30 @@ export function CollectionsProvider({
             setCategories(data || []);
         };
 
+        const fetchPromotions = async () => {
+            const now = new Date().toISOString();
 
+            const { data, error } = await supabase
+                .from("promotions")
+                .select("*")
+                .eq("is_active", true)
+                .lte("starts_at", now);
+
+            if (error) {
+                console.error(error);
+                return;
+            }
+
+            setPromotions(data);
+        };
 
         fetchCategories();
-
         fetchCollections();
+        fetchPromotions();
     }, []);
 
     return (
-        <CollectionsContext.Provider value={{ collections, categories, loading }}>
+        <CollectionsContext.Provider value={{ collections, categories, promotions, loading }}>
             {children}
         </CollectionsContext.Provider>
     );

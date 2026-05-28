@@ -47,7 +47,6 @@ export default function ProductCard({
       ? firstVariant.sale_price
       : firstVariant?.price;
 
-      console.log(firstVariant, '0firstVariant');
   return (
 
     <article className="group relative font-commissioner">

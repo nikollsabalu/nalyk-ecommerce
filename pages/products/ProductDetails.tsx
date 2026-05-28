@@ -24,7 +24,7 @@ interface ProductDetailProps {
     relatedProducts: ProductType[];
     variants: ProductVariant[];
 }
- 
+
 
 const getDeliveryDateText = (): string => {
     const date = new Date();
@@ -112,9 +112,6 @@ export default function ProductDetail({
             setQuantity((prev) => prev + 1);
         }
     };
-
-    console.log(selectedVariant, 'selectedVariant');
-
 
     const handleAddToCart = async () => {
         setIsLoading(true);
@@ -226,7 +223,7 @@ export default function ProductDetail({
                 <div>
                     <div className="grid grid-cols-2 gap-2">
 
-                        {(selectedVariant.images || images) 
+                        {(selectedVariant.images || images)
                             ?.map((item, index) => (
 
                                 <div
@@ -281,7 +278,7 @@ export default function ProductDetail({
                                         S/. {selectedVariant.price.toFixed(2)}
                                     </span>
 
-                                    <span className="text-[11px] bg-[#940000] text-white px-2 py-1 rounded-md "> Ahorra: S/ { (selectedVariant.price - selectedVariant.sale_price).toFixed(2)} </span>
+                                    <span className="text-[11px] bg-[#940000] text-white px-2 py-1 rounded-md "> Ahorra: S/ {(selectedVariant.price - selectedVariant.sale_price).toFixed(2)} </span>
                                 </div>
                             )}
 
@@ -420,7 +417,7 @@ export default function ProductDetail({
                             className={`h-2 w-2 rounded-full
                             ${isOutOfStock
                                     ? "bg-zinc-400"
-                                    : "animate-pulse bg-emerald-600"
+                                    : "animate-pulse bg-[#940000]"
                                 }`}
                         />
 
@@ -448,13 +445,40 @@ export default function ProductDetail({
 
                     </div>
 
-                    <h3 className="font-semibold mt-10 font-commissioner text-xs"> DETALLES DEL PRODUCTO: </h3>
+                    <div>
+                        <h3 className="font-semibold mt-10 font-commissioner text-xs"> DETALLES DEL PRODUCTO: </h3>
+                        <div
+                            className="text-xs leading-relaxed mt-2"
+                            dangerouslySetInnerHTML={{ __html: sanitizeHTML(description) }}
+                        />
+                    </div>
 
+                    <div>
+                        <h3 className="font-semibold mt-5 font-commissioner text-xs"> METODOS DE ENVÍO: </h3>
+                        <p className="text-xs font-semibold  mt-2">  Lima Metropolitana y Callao: </p>
 
-                    <div
-                        className="text-xs leading-relaxed mt-2"
-                        dangerouslySetInnerHTML={{ __html: sanitizeHTML(description) }}
-                    />
+                        <ul className="text-xs">
+                            <li>
+                                Envío express al día siguiente hábil desde <strong>S/. 14.90</strong>
+                            </li>
+
+                            <li>
+                                Envío regular con Olva Courier de 2 a 3 días  hábiles desde <strong>S/. 9.90</strong>
+                            </li>
+                        </ul>
+
+                        <p className="text-xs font-semibold mt-5"> Provincias del Perú: </p>
+
+                        <ul className="text-xs">
+                            <li>
+                                Envío regular de 2 a 4 días hábiles.
+                            </li>
+
+                            <li>
+                                Delivery o recojo en oficina de Olva Courier desde <strong>S/. 12.00</strong>
+                            </li>
+                        </ul>
+                    </div>
 
                 </div>
 
